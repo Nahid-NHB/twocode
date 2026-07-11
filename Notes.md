@@ -173,3 +173,35 @@ None.
 ### Things to remember
 - Before Phase I (billing/credits) ships, revisit the placeholder pricing numbers and confirm them against Anthropic's actual current pricing page.
 - OpenAI models still need to be added to `SUPPORTED_CHAT_MODELS` — flagged as a small gap, not forgotten.
+
+## Milestone 6: Mode + tool input schemas
+
+### What I built
+`packages/shared/src/schemas.ts`: a `Mode` object (`BUILD`/`PLAN`) with a derived `ModeType` and a Zod `modeSchema`, plus `toolInputSchemas` — one Zod object schema per local tool (`readFile`, `listDirectory`, `glob`, `grep`, `writeFile`, `editFile`, `bash`). No AI SDK wrapping yet — that's Milestone 7. Added `zod` as `shared`'s first real dependency.
+
+### Why this exists
+The server (deciding which tools to offer the model, and which mode restricts to which tools) and the CLI (validating and executing a tool call the model actually makes) both need to agree on each tool's argument shape and on what `Mode` values are legal. Defining both once in `shared` is what keeps them from drifting.
+
+### Concepts learned
+- Zod schemas give *runtime* validation, which matters specifically because tool-call arguments originate from an LLM's output, not a trusted caller — `schema.parse(input)` throws a clear error the moment the model sends a malformed call, instead of the executing code crashing on an unexpected `undefined` several lines later.
+- `z.string().default(".")` — a schema can supply its own default when a field is omitted entirely (verified: `listDirectory.parse({})` produced `{ path: "." }`), which is different from making the field `.optional()` (which would leave it `undefined`).
+- Deriving `ToolName` as `keyof ToolInputSchemas` (rather than hand-listing the 7 tool names again) means the type of "valid tool name" always matches the actual schema object — same pattern as `SupportedChatModelId` in Milestone 5.
+
+### Files created
+- `packages/shared/src/schemas.ts`
+
+### Files modified
+- `packages/shared/src/index.ts` (added `export * from "./schemas"`)
+- `packages/shared/package.json` (added `zod` dependency)
+
+### Architecture notes
+`Mode` is the safety boundary of the whole agent, not just a UI toggle — `PLAN` mode will only ever expose read-only tool contracts (Milestone 7) and the CLI will only ever execute read-only tools while in `PLAN` mode (Milestone 31-33). Defining it once here means that boundary is enforced with the same type on both sides of the client/server split.
+
+### Challenges encountered
+None.
+
+### Decisions made
+- Kept schema field names and shapes generic/conventional (e.g. `oldString`/`newString` for `editFile`, a single `command` string for `bash`) rather than mirroring any specific reference implementation's exact field names — these are standard concepts for a coding agent's tool set, designed fresh.
+
+### Things to remember
+- `bash`'s schema is intentionally just `{ command: string }` for now — no timeout/cwd field. If Milestone 33 (BUILD mode write tools, which implements the actual `bash` execution with a timeout) needs a configurable timeout, decide then whether that's a tool-input field or a hardcoded execution constant.
