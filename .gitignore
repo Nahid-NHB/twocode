@@ -3,6 +3,7 @@ node_modules
 dist
 out
 *.tgz
+packages/database/generated
 
 coverage
 *.lcov

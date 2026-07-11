@@ -1,0 +1,23 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Deliberately the only table. userId is a bare external id (the auth
+// provider's user id, wired up for real in Phase H) - no local User row to
+// keep in sync. messages stores the whole AI SDK UIMessage[] transcript as
+// one JSON blob per session; see Notes.md Milestone 8 for the trade-off.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  messages  Json     @default("[]")
+
+  @@index([userId])
+}
