@@ -1,3 +1,4 @@
+import { tool } from "ai";
 import { z } from "zod";
 
 export const Mode = {
@@ -49,3 +50,51 @@ export const toolInputSchemas = {
 
 export type ToolInputSchemas = typeof toolInputSchemas;
 export type ToolName = keyof ToolInputSchemas;
+
+// These contracts deliberately have no `execute` function. The server only
+// ever describes these tools to the model; actual execution happens inside
+// the CLI, which is the only side with access to the user's local
+// filesystem and shell.
+export const readOnlyToolContracts = {
+  readFile: tool({
+    description: "Read the contents of a file.",
+    inputSchema: toolInputSchemas.readFile,
+  }),
+  listDirectory: tool({
+    description: "List the contents of a directory.",
+    inputSchema: toolInputSchemas.listDirectory,
+  }),
+  glob: tool({
+    description: "Find files matching a glob pattern.",
+    inputSchema: toolInputSchemas.glob,
+  }),
+  grep: tool({
+    description: "Search file contents for a regular expression.",
+    inputSchema: toolInputSchemas.grep,
+  }),
+} as const;
+
+export const buildToolContracts = {
+  ...readOnlyToolContracts,
+  writeFile: tool({
+    description: "Write full contents to a file, creating or overwriting it.",
+    inputSchema: toolInputSchemas.writeFile,
+  }),
+  editFile: tool({
+    description:
+      "Replace an exact, unique occurrence of oldString with newString in a file.",
+    inputSchema: toolInputSchemas.editFile,
+  }),
+  bash: tool({
+    description: "Run a shell command in the project root.",
+    inputSchema: toolInputSchemas.bash,
+  }),
+} as const;
+
+export type ToolContracts = typeof buildToolContracts;
+
+export function getToolContracts(
+  mode: ModeType,
+): typeof readOnlyToolContracts | ToolContracts {
+  return mode === Mode.PLAN ? readOnlyToolContracts : buildToolContracts;
+}
