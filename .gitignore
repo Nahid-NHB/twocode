@@ -19,3 +19,5 @@ logs
 
 .idea
 .DS_Store
+Notes.md
+.gitignore
