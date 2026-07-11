@@ -104,3 +104,39 @@ None — `tsc --noEmit` and `bun run` succeeded on the first try for all four pl
 ### Things to remember
 - `bun.lock` now exists for real (earlier note said it'd show up once packages cross-import — it actually appeared as soon as real workspace members existed, even before any cross-import happens in Milestone 4).
 - Placeholder `index.ts` comments name the exact future milestone that replaces them — useful breadcrumbs if a session picks this up out of order.
+
+## Milestone 4: Prove workspace resolution
+
+### What I built
+`shared` now exports one real constant (`WORKSPACE_RESOLUTION_CHECK`). `server` declares `"@twocode/shared": "workspace:*"` as a real dependency, imports that constant, and logs it. Running `bun run packages/server/src/index.ts` from a clean `bun install` prints the string straight from `shared`'s source — no `dist`, no publish, no build step.
+
+### Why this exists
+Every later milestone depends on cross-package imports actually working (server importing shared's tool schemas, cli importing shared's `Mode` enum, server importing database's client). Proving it once, with the smallest possible payload, means any future import failure is a real bug — not "does the workspace even work."
+
+### Concepts learned
+- `"workspace:*"` in a `dependencies` field is what tells Bun "resolve this by name to the sibling package in `packages/`," not to a registry version.
+- TypeScript's automatic `@types` inclusion (silently picking up anything under any reachable `node_modules/@types`) did **not** kick in reliably here even though `@types/bun` was correctly installed and symlinked into `packages/server/node_modules/@types/bun` — had to add an explicit `"types": ["bun"]` in `packages/server/tsconfig.json` to get `console` (and other Bun globals) recognized. Explicit is more reliable than relying on auto-discovery, especially combined with `moduleResolution: "bundler"`.
+- Bun's installer uses an isolated/nested layout here — dependencies land inside each consuming package's own `node_modules` (symlinked into a shared global store under the root `node_modules/.bun`), rather than everything hoisted to one flat root `node_modules`. Good reason to always check `packages/<name>/node_modules` when a dependency "isn't found," not just the root.
+
+### Files created
+- none
+
+### Files modified
+- `packages/shared/src/index.ts` (added the dummy exported constant)
+- `packages/server/package.json` (added `@twocode/shared` dependency + `@types/bun` devDependency)
+- `packages/server/src/index.ts` (import + log the constant)
+- `packages/server/tsconfig.json` (explicit `"types": ["bun"]`)
+- `bun.lock`
+
+### Architecture notes
+The temporary constant and import are explicitly commented as scaffolding to be deleted — `shared`'s real content (model registry, schemas) replaces `WORKSPACE_RESOLUTION_CHECK` in Milestone 5, and `server`'s real Hono app replaces this `console.log` in Milestone 10.
+
+### Challenges encountered
+`tsc` couldn't find `console` even after `@types/bun` was installed and correctly symlinked — resolved by adding `"types": ["bun"]` explicitly to `server`'s tsconfig rather than relying on automatic discovery.
+
+### Decisions made
+- Any package that runs real Bun runtime code (uses `console`, `process`, etc.) gets an explicit `"types": ["bun"]` (or `"node"` where relevant later) in its own tsconfig, rather than trusting auto-inclusion — more predictable across the different install layouts Bun might choose.
+
+### Things to remember
+- When Milestone 5 removes `WORKSPACE_RESOLUTION_CHECK`, also remove the now-unused import + `console.log` from `server/src/index.ts` (it'll be replaced by real Hono code in Milestone 10 anyway, but don't leave dead scaffolding sitting in between).
+- `cli` and `database` will likely need the same explicit `"types": ["bun"]` treatment the first time they use a Bun global — don't be surprised if the same fix is needed again.
