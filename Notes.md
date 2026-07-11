@@ -140,3 +140,36 @@ The temporary constant and import are explicitly commented as scaffolding to be 
 ### Things to remember
 - When Milestone 5 removes `WORKSPACE_RESOLUTION_CHECK`, also remove the now-unused import + `console.log` from `server/src/index.ts` (it'll be replaced by real Hono code in Milestone 10 anyway, but don't leave dead scaffolding sitting in between).
 - `cli` and `database` will likely need the same explicit `"types": ["bun"]` treatment the first time they use a Bun global — don't be surprised if the same fix is needed again.
+
+## Milestone 5: Model registry
+
+### What I built
+`packages/shared/src/models.ts`: `SupportedProvider` union, `ModelPricing`/`SupportedChatModelDefinition` interfaces, `SUPPORTED_CHAT_MODELS` (3 Anthropic entries: Opus 4.8, Sonnet 5, Haiku 4.5), `SupportedChatModelId` (a literal union derived from the array itself), `DEFAULT_CHAT_MODEL_ID`, and `findSupportedChatModel(modelId)`. `shared/src/index.ts` now does `export * from "./models"` — the temporary `WORKSPACE_RESOLUTION_CHECK` constant from Milestone 4 is gone. `server/src/index.ts` is reverted back to its placeholder comment now that its wiring-proof job is done.
+
+### Why this exists
+Both the server (to call the right AI SDK provider) and the CLI (to show a model picker) must agree on exactly one list of valid model ids — putting it in `shared` means there's a single source of truth instead of two lists that can drift.
+
+### Concepts learned
+- `as const satisfies readonly T[]` gets you two things at once: the array stays a `readonly` literal tuple (so `(typeof arr)[number]["id"]` produces a real union type of the actual ids, not just `string`), while `satisfies` still checks every entry actually matches the `SupportedChatModelDefinition` shape — using `as const` alone would lose that shape-checking, and typing the array as `SupportedChatModelDefinition[]` directly would widen `id` to `string` and lose the literal union.
+- Deriving `SupportedChatModelId` *from* the data (`(typeof SUPPORTED_CHAT_MODELS)[number]["id"]`) instead of hand-writing a parallel union type means adding a model to the array automatically updates every type that depends on valid ids — no second place to remember to edit.
+
+### Files created
+- `packages/shared/src/models.ts`
+
+### Files modified
+- `packages/shared/src/index.ts` (dummy constant → real re-export)
+- `packages/server/src/index.ts` (temporary import/log removed, back to placeholder)
+
+### Architecture notes
+Flat array + linear-search `.find()` instead of a `Map` — fine at "a handful of models," and keeps the data trivially iterable for a future `/models` picker UI without a second data structure.
+
+### Challenges encountered
+None.
+
+### Decisions made
+- Populated real, currently-accurate Anthropic model ids (`claude-opus-4-8`, `claude-sonnet-5`, `claude-haiku-4-5-20251001`) but explicitly placeholder pricing (commented as such) — didn't want to fabricate precise-looking dollar figures I'm not certain are current.
+- Deferred adding OpenAI model entries to a later small addition once we reach Phase F and can verify real ids/pricing against OpenAI's docs, rather than guessing now. `SupportedProvider` already includes `"openai"` in the type so the shape is ready for it.
+
+### Things to remember
+- Before Phase I (billing/credits) ships, revisit the placeholder pricing numbers and confirm them against Anthropic's actual current pricing page.
+- OpenAI models still need to be added to `SUPPORTED_CHAT_MODELS` — flagged as a small gap, not forgotten.
