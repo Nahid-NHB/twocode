@@ -27,6 +27,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@twocode/shared": "workspace:*",
+        "hono": "^4.12.29",
       },
       "devDependencies": {
         "@types/bun": "latest",
