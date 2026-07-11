@@ -1,0 +1,34 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "twocode",
+    },
+    "packages/cli": {
+      "name": "@twocode/cli",
+      "version": "0.1.0",
+    },
+    "packages/database": {
+      "name": "@twocode/database",
+      "version": "0.1.0",
+    },
+    "packages/server": {
+      "name": "@twocode/server",
+      "version": "0.1.0",
+    },
+    "packages/shared": {
+      "name": "@twocode/shared",
+      "version": "0.1.0",
+    },
+  },
+  "packages": {
+    "@twocode/cli": ["@twocode/cli@workspace:packages/cli"],
+
+    "@twocode/database": ["@twocode/database@workspace:packages/database"],
+
+    "@twocode/server": ["@twocode/server@workspace:packages/server"],
+
+    "@twocode/shared": ["@twocode/shared@workspace:packages/shared"],
+  }
+}
