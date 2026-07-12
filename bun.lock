@@ -26,6 +26,7 @@
       "name": "@twocode/server",
       "version": "0.1.0",
       "dependencies": {
+        "@twocode/database": "workspace:*",
         "@twocode/shared": "workspace:*",
         "hono": "^4.12.29",
       },
