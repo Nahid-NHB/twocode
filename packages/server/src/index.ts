@@ -4,9 +4,9 @@ import { sessionsRoute } from "./routes/sessions";
 
 const app = new Hono();
 
-app.get("/health", (c) => c.json({ status: "ok" }));
-
-app.route("/sessions", sessionsRoute);
+const routes = app
+  .get("/health", (c) => c.json({ status: "ok" }))
+  .route("/sessions", sessionsRoute);
 
 app.onError((err, c) => {
   if (err instanceof HTTPException) {
@@ -16,6 +16,8 @@ app.onError((err, c) => {
   console.error(err);
   return c.json({ error: "Internal server error" }, 500);
 });
+
+export type AppType = typeof routes;
 
 export default {
   port: 3000,

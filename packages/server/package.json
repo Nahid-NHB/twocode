@@ -7,9 +7,11 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.8.0",
     "@twocode/database": "workspace:*",
     "@twocode/shared": "workspace:*",
-    "hono": "^4.12.29"
+    "hono": "^4.12.29",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/bun": "latest"
