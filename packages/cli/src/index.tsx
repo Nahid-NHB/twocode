@@ -3,6 +3,7 @@ import { createRoot } from "@opentui/react";
 import { Header } from "./components/header";
 import { InputBar } from "./components/input-bar";
 import { ThemedRoot } from "./layouts/themed-root";
+import { KeyboardLayerProvider } from "./providers/keyboard-layer";
 import { ThemeProvider } from "./providers/theme";
 
 function App() {
@@ -24,6 +25,8 @@ const renderer = await createCliRenderer({
 });
 createRoot(renderer).render(
   <ThemeProvider>
-    <App />
+    <KeyboardLayerProvider>
+      <App />
+    </KeyboardLayerProvider>
   </ThemeProvider>,
 );
