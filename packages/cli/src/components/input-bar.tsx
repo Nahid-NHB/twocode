@@ -2,6 +2,7 @@ import { useRef, useCallback, useEffect } from "react";
 import type { TextareaRenderable } from "@opentui/core";
 import { useKeyboard, useRenderer } from "@opentui/react";
 import type { KeyBinding } from "@opentui/core";
+import { useNavigate } from "react-router";
 import { Mode } from "@twocode/shared";
 import { EmptyBorder } from "./border";
 import { StatusBar } from "./status-bar";
@@ -29,6 +30,7 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
   const onSubmitRef = useRef<() => void>(() => {});
   const renderer = useRenderer();
   const dialog = useDialog();
+  const navigate = useNavigate();
   const { mode, toggleMode, setMode, model, setModel } = usePromptConfig();
   const { colors } = useTheme();
 
@@ -74,6 +76,7 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
       command.action({
         exit: () => renderer.destroy(),
         dialog,
+        navigate,
         mode,
         setMode,
         model,
@@ -82,7 +85,7 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
     } else {
       textarea.insertText(command.value + " ");
     }
-  }, [renderer, dialog, mode, setMode, model, setModel]);
+  }, [renderer, dialog, navigate, mode, setMode, model, setModel]);
 
   const handleCommandExecute = useCallback(
     (index: number) => {

@@ -1,6 +1,7 @@
 import { SUPPORTED_CHAT_MODELS } from "@twocode/shared";
 import { AgentsDialogContent } from "../dialogs/agents-dialog";
 import { ModelsDialogContent } from "../dialogs/models-dialog";
+import { SessionsDialogContent } from "../dialogs/sessions-dialog";
 import { ThemeDialogContent } from "../dialogs/theme-dialog";
 import type { Command } from "./types";
 
@@ -9,6 +10,9 @@ export const COMMANDS: Command[] = [
     name: "new",
     description: "Start a new conversation",
     value: "/new",
+    action: (ctx) => {
+      ctx.navigate("/");
+    },
   },
   {
     name: "agents",
@@ -42,6 +46,12 @@ export const COMMANDS: Command[] = [
     name: "sessions",
     description: "Browse past sessions",
     value: "/sessions",
+    action: (ctx) => {
+      ctx.dialog.open({
+        title: "Sessions",
+        children: <SessionsDialogContent />,
+      });
+    },
   },
   {
     name: "theme",
