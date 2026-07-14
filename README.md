@@ -23,22 +23,22 @@
 
 ## Status
 
-**10 of 44 planned milestones complete** — Phases A–C done, Phase D in progress.
+**16 of 44 planned milestones complete** — Phases A–D done, Phase E in progress.
 
 | Phase | Status | What it covers |
 |---|---|---|
 | A — Monorepo & tooling | ✅ Done | Bun workspaces, shared `tsconfig`, 4 scaffolded packages |
 | B — Shared contracts | ✅ Done | Model registry, `Mode`, tool schemas, AI SDK tool contracts |
 | C — Database | ✅ Done | Prisma `Session` schema, migration, client singleton |
-| D — Server skeleton | 🚧 In progress | Hono app, `/health` live; error handling, auth/billing stubs, sessions routes next |
-| E — CLI skeleton | ⬜ Not started | OpenTUI + React terminal shell, routing, providers |
+| D — Server skeleton | ✅ Done | Hono app, error handling, auth/billing stubs, full sessions CRUD, `AppType` export |
+| E — CLI skeleton | 🚧 In progress | OpenTUI render boot live; Header, InputBar, routing, providers next |
 | F — Chat streaming | ⬜ Not started | Real AI SDK streaming (first working demo) |
 | G — Tool calling | ⬜ Not started | Local tool execution, PLAN/BUILD modes |
 | H — Real auth | ⬜ Not started | Clerk OAuth |
 | I — Real billing | ⬜ Not started | Polar credits |
 | J — Polish | ⬜ Not started | Command menu, dialogs, UX |
 
-There is no CLI or chat interface to run yet — just a database and a health-checked API. First interactive screen and first real AI chat are both still a few milestones out.
+There's a bare OpenTUI terminal shell now (`bun run dev:cli`), but no real screen, routing, or chat interface yet — just a colored box. First interactive screen and first real AI chat are both still a few milestones out.
 
 ## Architecture
 
@@ -47,7 +47,7 @@ packages/
 ├── shared/     # Model registry, Mode, Zod tool schemas, AI SDK tool contracts
 ├── database/   # Prisma schema (single Session model) + client singleton
 ├── server/     # Hono API
-└── cli/        # OpenTUI + React terminal client (not started yet)
+└── cli/        # OpenTUI + React terminal client (render boot only so far)
 ```
 
 Every package is `@twocode/*`, resolved by Bun straight from `src/` via workspace `exports` — no build step for internal consumption.
@@ -64,6 +64,7 @@ bun run --cwd packages/database db:generate
 (cd packages/database && bunx prisma migrate deploy)
 
 bun run packages/server/src/index.ts   # http://localhost:3000/health
+bun run dev:cli                        # bare OpenTUI terminal shell (no real screen yet)
 ```
 
 ## Contributing to this project (with yourself)

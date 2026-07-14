@@ -2,5 +2,8 @@
   "name": "twocode",
   "version": "0.1.0",
   "private": true,
-  "workspaces": ["packages/*"]
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "dev:cli": "bun run --watch packages/cli/src/index.tsx"
+  }
 }
