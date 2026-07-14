@@ -47,7 +47,7 @@ export const COMMANDS: Command[] = [
         children: (
           <ModelsDialogContent
             currentModel={ctx.model}
-            models={modelsForProvider(ctx.provider).map((model) => model.id)}
+            models={modelsForProvider(ctx.provider)}
             onSelectModel={ctx.setModel}
           />
         ),

@@ -86,8 +86,20 @@ export const SUPPORTED_CHAT_MODELS = [
   },
   // Google -- Gemini's free tier (aistudio.google.com, no card required) is
   // exactly the entry point this project wants to make easy to reach.
+  // Confirmed against Google's own pricing docs (ai.google.dev/gemini-api/docs/pricing):
+  // Flash and Flash-Lite have a real free tier; Pro requires a billing-enabled
+  // project with no free tier at all -- selecting it with a free-tier-only key
+  // fails with a real, confusing API error, so it's deliberately NOT flagged
+  // free here and the models dialog surfaces that distinction to the user
+  // before they pick it, not after.
   {
     id: "gemini-2.5-flash",
+    provider: "google",
+    pricing: { inputUsdPerMillionTokens: 0, outputUsdPerMillionTokens: 0 },
+    free: true,
+  },
+  {
+    id: "gemini-2.5-flash-lite",
     provider: "google",
     pricing: { inputUsdPerMillionTokens: 0, outputUsdPerMillionTokens: 0 },
     free: true,
