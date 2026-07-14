@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { Outlet } from "react-router";
 import { DialogProvider } from "../providers/dialog";
 import { KeyboardLayerProvider } from "../providers/keyboard-layer";
 import { PromptConfigProvider } from "../providers/prompt-config";
@@ -6,18 +6,16 @@ import { ThemeProvider } from "../providers/theme";
 import { ToastProvider } from "../providers/toast";
 import { ThemedRoot } from "./themed-root";
 
-type Props = {
-  children: ReactNode;
-};
-
-export function RootLayout({ children }: Props) {
+export function RootLayout() {
   return (
     <ThemeProvider>
       <ToastProvider>
         <KeyboardLayerProvider>
           <DialogProvider>
             <PromptConfigProvider>
-              <ThemedRoot>{children}</ThemedRoot>
+              <ThemedRoot>
+                <Outlet />
+              </ThemedRoot>
             </PromptConfigProvider>
           </DialogProvider>
         </KeyboardLayerProvider>
