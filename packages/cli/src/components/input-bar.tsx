@@ -1,13 +1,16 @@
 import { useRef, useCallback, useEffect } from "react";
 import type { TextareaRenderable } from "@opentui/core";
-import { useRenderer } from "@opentui/react";
+import { useKeyboard, useRenderer } from "@opentui/react";
 import type { KeyBinding } from "@opentui/core";
+import { Mode } from "@twocode/shared";
 import { EmptyBorder } from "./border";
 import { StatusBar } from "./status-bar";
 import { CommandMenu } from "./command-menu";
 import type { Command } from "./command-menu/types";
 import { useCommandMenu } from "./command-menu/use-command-menu";
 import { useDialog } from "../providers/dialog";
+import { usePromptConfig } from "../providers/prompt-config";
+import { useTheme } from "../providers/theme";
 
 type Props = {
   onSubmit: (text: string) => void;
@@ -26,6 +29,8 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
   const onSubmitRef = useRef<() => void>(() => {});
   const renderer = useRenderer();
   const dialog = useDialog();
+  const { mode, toggleMode } = usePromptConfig();
+  const { colors } = useTheme();
 
   const {
     showCommandMenu,
@@ -105,11 +110,19 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
     handleSubmit();
   };
 
+  useKeyboard((key) => {
+    if (disabled || showCommandMenu) return;
+    if (key.name === "tab") {
+      key.preventDefault();
+      toggleMode();
+    }
+  });
+
   return (
     <box width="100%" alignItems="center">
       <box
         border={["left"]}
-        borderColor="cyan"
+        borderColor={mode === Mode.PLAN ? colors.planMode : colors.primary}
         customBorderChars={{
           ...EmptyBorder,
           vertical: "┃",
