@@ -22,3 +22,4 @@ logs
 .DS_Store
 Notes.md
 .gitignore
+.worktrees
