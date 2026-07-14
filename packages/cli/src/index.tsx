@@ -4,6 +4,7 @@ import { Header } from "./components/header";
 import { InputBar } from "./components/input-bar";
 import { ThemedRoot } from "./layouts/themed-root";
 import { KeyboardLayerProvider } from "./providers/keyboard-layer";
+import { PromptConfigProvider } from "./providers/prompt-config";
 import { ThemeProvider } from "./providers/theme";
 
 function App() {
@@ -26,7 +27,9 @@ const renderer = await createCliRenderer({
 createRoot(renderer).render(
   <ThemeProvider>
     <KeyboardLayerProvider>
-      <App />
+      <PromptConfigProvider>
+        <App />
+      </PromptConfigProvider>
     </KeyboardLayerProvider>
   </ThemeProvider>,
 );

@@ -1,14 +1,21 @@
 import { TextAttributes } from "@opentui/core";
-import { DEFAULT_CHAT_MODEL_ID } from "@twocode/shared";
+import { Mode } from "@twocode/shared";
+import { usePromptConfig } from "../providers/prompt-config";
+import { useTheme } from "../providers/theme";
 
 export function StatusBar() {
+  const { mode, model } = usePromptConfig();
+  const { colors } = useTheme();
+
   return (
     <box flexDirection="row" gap={1}>
-      <text fg="cyan">Build</text>
-      <text attributes={TextAttributes.DIM} fg="gray">
+      <text fg={mode === Mode.PLAN ? colors.planMode : colors.primary}>
+        {mode === Mode.PLAN ? "Plan" : "Build"}
+      </text>
+      <text attributes={TextAttributes.DIM} fg={colors.dimSeparator}>
         ›
       </text>
-      <text>{DEFAULT_CHAT_MODEL_ID}</text>
+      <text>{model}</text>
     </box>
   );
 }
