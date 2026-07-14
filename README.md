@@ -23,7 +23,7 @@
 
 ## Status
 
-**50 milestones complete** — the original 44-item plan, plus post-plan polish (45) and a 5-milestone multi-provider AI feature (46-50). Every phase that's reachable without external service credentials this environment doesn't have is done. Phases H (Clerk OAuth) and I (Polar billing) are genuinely blocked on real accounts — their stubs are the intended state until someone picks this up with real credentials in hand.
+**51 milestones complete** — the original 44-item plan, post-plan polish (45), a 5-milestone multi-provider AI feature (46-50), and the ability to change an already-configured provider's key (51, via shift+enter in `/provider`). Every phase that's reachable without external service credentials this environment doesn't have is done. Phases H (Clerk OAuth) and I (Polar billing) are genuinely blocked on real accounts — their stubs are the intended state until someone picks this up with real credentials in hand.
 
 | Phase | Status | What it covers |
 |---|---|---|
