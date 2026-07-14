@@ -90,10 +90,13 @@ export const SUPPORTED_CHAT_MODELS = [
   // project with no free tier at all -- selecting it with a free-tier-only key
   // fails with a real, confusing API error, so it's deliberately NOT flagged
   // free here and the models dialog surfaces that distinction to the user
-  // before they pick it, not after. Same free/paid split as the prior 2.5
-  // generation, carried forward to 3.1.
+  // before they pick it, not after. IDs below were cross-checked live against
+  // a real key's /v1beta/models response, not assumed: there is no bare
+  // "gemini-3.1-flash" or "gemini-3.1-pro" -- the 3.1 generation only ships
+  // "gemini-3.1-flash-lite" and "gemini-3.1-pro-preview", while the actual
+  // current flash flagship is "gemini-3.5-flash".
   {
-    id: "gemini-3.1-flash",
+    id: "gemini-3.5-flash",
     provider: "google",
     pricing: { inputUsdPerMillionTokens: 0, outputUsdPerMillionTokens: 0 },
     free: true,
@@ -105,7 +108,7 @@ export const SUPPORTED_CHAT_MODELS = [
     free: true,
   },
   {
-    id: "gemini-3.1-pro",
+    id: "gemini-3.1-pro-preview",
     provider: "google",
     pricing: { inputUsdPerMillionTokens: 1.25, outputUsdPerMillionTokens: 10 },
   },
