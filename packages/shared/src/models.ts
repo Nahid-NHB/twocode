@@ -124,21 +124,24 @@ export const SUPPORTED_CHAT_MODELS = [
   // routes (no cost, rate-limited). Curated as a starting point; the
   // provider also allows typing any other OpenRouter model slug directly
   // (see ProviderDefinition.allowsCustomModelId), since it proxies far more
-  // models than are worth hardcoding here.
+  // models than are worth hardcoding here. OpenRouter retires/renames
+  // free slugs over time (the previous llama-3.1-8b/mistral-7b/qwen-2.5-7b
+  // trio all 404'd with "unavailable for free"); re-checked live against
+  // https://openrouter.ai/api/v1/models before picking this set.
   {
-    id: "meta-llama/llama-3.1-8b-instruct:free",
+    id: "meta-llama/llama-3.3-70b-instruct:free",
     provider: "openrouter",
     pricing: { inputUsdPerMillionTokens: 0, outputUsdPerMillionTokens: 0 },
     free: true,
   },
   {
-    id: "mistralai/mistral-7b-instruct:free",
+    id: "openai/gpt-oss-20b:free",
     provider: "openrouter",
     pricing: { inputUsdPerMillionTokens: 0, outputUsdPerMillionTokens: 0 },
     free: true,
   },
   {
-    id: "qwen/qwen-2.5-7b-instruct:free",
+    id: "qwen/qwen3-coder:free",
     provider: "openrouter",
     pricing: { inputUsdPerMillionTokens: 0, outputUsdPerMillionTokens: 0 },
     free: true,
