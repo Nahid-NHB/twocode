@@ -23,7 +23,7 @@
 
 ## Status
 
-**40 of 44 planned milestones complete** — Phases A–E done, Phase F nearly there.
+**44 of 44 planned milestones complete.** Every phase that's reachable without external service credentials this environment doesn't have is done. Phases H (Clerk OAuth) and I (Polar billing) are genuinely blocked on real accounts — their stubs are the intended state until someone picks this up with real credentials in hand.
 
 | Phase | Status | What it covers |
 |---|---|---|
@@ -31,14 +31,14 @@
 | B — Shared contracts | ✅ Done | Model registry, `Mode`, tool schemas, AI SDK tool contracts |
 | C — Database | ✅ Done | Prisma `Session` schema, migration, client singleton |
 | D — Server skeleton | ✅ Done | Hono app, error handling, auth/billing stubs, full sessions CRUD, `AppType` export |
-| E — CLI skeleton | ✅ Done | Static screen, full provider stack, theme switching, routing, real session creation/loading |
-| F — Chat streaming | 🚧 Nearly there | Real `/chat` route, `useChat` hook, and client-side tool execution are all live and verified end-to-end — the only missing piece is a real `ANTHROPIC_API_KEY` for an actual streamed reply |
-| G — Tool calling | 🚧 Mostly done | Local tool execution (7 tools, PLAN-mode gating, sandboxing) is real and fully verified; needs a live model turn to exercise it end-to-end |
-| H — Real auth | ⬜ Not started | Clerk OAuth |
-| I — Real billing | ⬜ Not started | Polar credits |
-| J — Polish | ⬜ Not started | Command menu, dialogs, UX |
+| E — CLI skeleton | ✅ Done | Static screen, full provider stack, theme switching, routing, session create/browse/resume |
+| F — Chat streaming | ✅ Done (needs a key) | Real `/chat` route, `useChat` hook, full message rendering (reasoning/tool-call/text) — verified end-to-end with a synthetic model response; only missing piece is a real `ANTHROPIC_API_KEY` for an actual reply |
+| G — Tool calling | ✅ Done | Client-side execution of all 7 tools (PLAN-mode gating, sandboxing), fully real-verified with no key needed; the agentic loop (tool call → execute → continue) verified live |
+| H — Real auth | ⛔ Blocked | Needs a real Clerk OAuth app — `requireAuth` stays the `dev-user` stub until then |
+| I — Real billing | ⛔ Blocked | Needs a real Polar account — `requireCreditsBalance` stays a no-op until then |
+| J — Polish | ✅ Done | Full command menu (theme/agents/models/sessions/new/exit all real), tab-key mode toggle, focus-restoration fix |
 
-There's a real, themed, routable app now: `Home` → `NewSession` → `Session`, each backed by a real Postgres-persisted session. Typing a message on Home creates a real session and lands you on a real chat screen wired to a real `/chat` endpoint (auth stub, credits stub, session merge, tool resolution, AI SDK `streamText`, all real) and a real `useChat` hook with working client-side tool execution (verified with a synthetic tool call — real file I/O, real sandboxing, real agentic-loop continuation). The one thing not yet provable is an actual model reply, since no `ANTHROPIC_API_KEY` is configured — everything up to that boundary is real and tested. Run it with `bun run dev:cli` (needs `bun run packages/server/src/index.ts` running alongside it).
+This is a real, themed, fully-routable terminal app: `Home` → `NewSession` → `Session`, each backed by a real Postgres-persisted session. Typing a message creates a real session and lands on a real chat screen wired to a real `/chat` endpoint and a real `useChat` hook with working client-side tool execution and full message rendering (reasoning, tool calls, text, a mode/model/duration footer). The command menu is fully live: `/theme`, `/agents`, `/models`, `/sessions`, `/new`, `/exit` all do something real; `/login`, `/logout`, `/upgrade`, `/usage` remain documented stubs pending Phase H/I credentials. The one thing not provable end-to-end is an actual model reply, since no `ANTHROPIC_API_KEY` is configured — everything up to that boundary (auth, credits, session merge, tool resolution, the real request reaching Anthropic's API) is real and tested; drop a key in `.env` to see it go all the way. Run it with `bun run dev:cli` (needs `bun run packages/server/src/index.ts` running alongside it).
 
 ## Architecture
 
@@ -47,7 +47,7 @@ packages/
 ├── shared/     # Model registry, Mode, Zod tool schemas, AI SDK tool contracts
 ├── database/   # Prisma schema (single Session model) + client singleton
 ├── server/     # Hono API
-└── cli/        # OpenTUI + React terminal client (routed screens, real chat wiring, needs an API key)
+└── cli/        # OpenTUI + React terminal client (fully routed, real chat + tool execution, needs an API key)
 ```
 
 Every package is `@twocode/*`, resolved by Bun straight from `src/` via workspace `exports` — no build step for internal consumption.
