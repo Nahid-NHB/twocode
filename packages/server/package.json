@@ -7,9 +7,11 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.14",
     "@hono/zod-validator": "^0.8.0",
     "@twocode/database": "workspace:*",
     "@twocode/shared": "workspace:*",
+    "ai": "^7.0.26",
     "hono": "^4.12.29",
     "zod": "^4.4.3"
   },
