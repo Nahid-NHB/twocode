@@ -9,6 +9,7 @@ import { useTheme } from "../theme";
 export type DialogContextValue = {
   open: (config: DialogConfig) => void;
   close: () => void;
+  isOpen: boolean;
 };
 
 const DialogContext = createContext<DialogContextValue | null>(null);
@@ -47,7 +48,7 @@ export function DialogProvider({ children }: DialogProviderProps) {
     [push, close],
   );
 
-  const value: DialogContextValue = { open, close };
+  const value: DialogContextValue = { open, close, isOpen: currentDialog !== null };
 
   return (
     <DialogContext.Provider value={value}>

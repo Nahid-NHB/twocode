@@ -1,3 +1,6 @@
+import { SUPPORTED_CHAT_MODELS } from "@twocode/shared";
+import { AgentsDialogContent } from "../dialogs/agents-dialog";
+import { ModelsDialogContent } from "../dialogs/models-dialog";
 import { ThemeDialogContent } from "../dialogs/theme-dialog";
 import type { Command } from "./types";
 
@@ -11,11 +14,29 @@ export const COMMANDS: Command[] = [
     name: "agents",
     description: "Switch agents",
     value: "/agents",
+    action: (ctx) => {
+      ctx.dialog.open({
+        title: "Select Agent",
+        children: <AgentsDialogContent currentMode={ctx.mode} onSelectMode={ctx.setMode} />,
+      });
+    },
   },
   {
     name: "models",
     description: "Select AI model for generation",
     value: "/models",
+    action: (ctx) => {
+      ctx.dialog.open({
+        title: "Select Model",
+        children: (
+          <ModelsDialogContent
+            currentModel={ctx.model}
+            models={SUPPORTED_CHAT_MODELS.map((model) => model.id)}
+            onSelectModel={ctx.setModel}
+          />
+        ),
+      });
+    },
   },
   {
     name: "sessions",

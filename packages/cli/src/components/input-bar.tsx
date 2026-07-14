@@ -29,7 +29,7 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
   const onSubmitRef = useRef<() => void>(() => {});
   const renderer = useRenderer();
   const dialog = useDialog();
-  const { mode, toggleMode } = usePromptConfig();
+  const { mode, toggleMode, setMode, model, setModel } = usePromptConfig();
   const { colors } = useTheme();
 
   const {
@@ -74,11 +74,15 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
       command.action({
         exit: () => renderer.destroy(),
         dialog,
+        mode,
+        setMode,
+        model,
+        setModel,
       });
     } else {
       textarea.insertText(command.value + " ");
     }
-  }, [renderer, dialog]);
+  }, [renderer, dialog, mode, setMode, model, setModel]);
 
   const handleCommandExecute = useCallback(
     (index: number) => {
@@ -117,6 +121,16 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
       toggleMode();
     }
   });
+
+  // OpenTUI doesn't automatically return focus to the textarea when a
+  // dialog's own focused element (its search input) unmounts, so without
+  // this the textarea silently stops accepting typed input after any
+  // dialog closes.
+  useEffect(() => {
+    if (!dialog.isOpen && !disabled) {
+      textareaRef.current?.focus();
+    }
+  }, [dialog.isOpen, disabled]);
 
   return (
     <box width="100%" alignItems="center">
