@@ -10,6 +10,11 @@ type DialogSearchListProps<T> = {
   items: T[];
   onSelect: (item: T) => void;
   onHighlight?: (item: T) => void;
+  // Optional alternate action on the highlighted item, triggered by
+  // shift+enter (plain enter always goes to onSelect). Free of conflicts
+  // with the search input's own default keybindings -- unlike most letter
+  // shortcuts, which the search box would otherwise just type into itself.
+  onSecondaryAction?: (item: T) => void;
   filterFn: (item: T, query: string) => boolean;
   renderItem: (item: T, isSelected: boolean) => ReactNode;
   getKey: (item: T) => string;
@@ -21,6 +26,7 @@ export function DialogSearchList<T>({
   items,
   onSelect,
   onHighlight,
+  onSecondaryAction,
   filterFn,
   renderItem,
   getKey,
@@ -54,7 +60,11 @@ export function DialogSearchList<T>({
 
     if (key.name === "return" || key.name === "enter") {
       const item = filtered[selectedIndex];
-      if (item) {
+      if (!item) return;
+
+      if (key.shift && onSecondaryAction) {
+        onSecondaryAction(item);
+      } else {
         onSelect(item);
       }
     } else if (key.name === "up") {
