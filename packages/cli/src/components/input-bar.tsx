@@ -12,6 +12,7 @@ import { useCommandMenu } from "./command-menu/use-command-menu";
 import { useDialog } from "../providers/dialog";
 import { usePromptConfig } from "../providers/prompt-config";
 import { useTheme } from "../providers/theme";
+import { useToast } from "../providers/toast";
 
 type Props = {
   onSubmit: (text: string) => void;
@@ -30,6 +31,7 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
   const onSubmitRef = useRef<() => void>(() => {});
   const renderer = useRenderer();
   const dialog = useDialog();
+  const toast = useToast();
   const navigate = useNavigate();
   const { mode, toggleMode, setMode, model, setModel } = usePromptConfig();
   const { colors } = useTheme();
@@ -76,6 +78,7 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
       command.action({
         exit: () => renderer.destroy(),
         dialog,
+        toast,
         navigate,
         mode,
         setMode,
@@ -85,7 +88,7 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
     } else {
       textarea.insertText(command.value + " ");
     }
-  }, [renderer, dialog, navigate, mode, setMode, model, setModel]);
+  }, [renderer, dialog, toast, navigate, mode, setMode, model, setModel]);
 
   const handleCommandExecute = useCallback(
     (index: number) => {

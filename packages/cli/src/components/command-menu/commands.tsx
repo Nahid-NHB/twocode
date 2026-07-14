@@ -68,21 +68,45 @@ export const COMMANDS: Command[] = [
     name: "login",
     description: "Sign in with your browser",
     value: "/login",
+    action: (ctx) => {
+      ctx.toast.show({
+        variant: "info",
+        message: "Sign-in isn't available yet — this needs a real Clerk OAuth app (Phase H).",
+      });
+    },
   },
   {
     name: "logout",
     description: "Sign out of your account",
     value: "/logout",
+    action: (ctx) => {
+      ctx.toast.show({
+        variant: "info",
+        message: "There's no real session to sign out of yet — auth is still the dev-user stub (Phase H).",
+      });
+    },
   },
   {
     name: "upgrade",
     description: "Buy more credits",
     value: "/upgrade",
+    action: (ctx) => {
+      ctx.toast.show({
+        variant: "info",
+        message: "Buying credits isn't available yet — this needs a real Polar account (Phase I).",
+      });
+    },
   },
   {
     name: "usage",
     description: "Open billing portal in your browser",
     value: "/usage",
+    action: (ctx) => {
+      ctx.toast.show({
+        variant: "info",
+        message: "There's no billing portal yet — credits are still the always-pass stub (Phase I).",
+      });
+    },
   },
   {
     name: "exit",
