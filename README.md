@@ -23,7 +23,7 @@
 
 ## Status
 
-**22 of 44 planned milestones complete** — Phases A–D done, Phase E in progress.
+**30 of 44 planned milestones complete** — Phases A–D done, Phase E in progress.
 
 | Phase | Status | What it covers |
 |---|---|---|
@@ -31,14 +31,14 @@
 | B — Shared contracts | ✅ Done | Model registry, `Mode`, tool schemas, AI SDK tool contracts |
 | C — Database | ✅ Done | Prisma `Session` schema, migration, client singleton |
 | D — Server skeleton | ✅ Done | Hono app, error handling, auth/billing stubs, full sessions CRUD, `AppType` export |
-| E — CLI skeleton | 🚧 In progress | Static screen (Header, InputBar, StatusBar, command menu) live; theme data ready; providers, routing, real submit next |
+| E — CLI skeleton | 🚧 In progress | Static screen + full provider stack (theme, keyboard layers, toast, dialog, prompt config) live; live theme switching via `/theme`; routing, real submit next |
 | F — Chat streaming | ⬜ Not started | Real AI SDK streaming (first working demo) |
 | G — Tool calling | ⬜ Not started | Local tool execution, PLAN/BUILD modes |
 | H — Real auth | ⬜ Not started | Clerk OAuth |
 | I — Real billing | ⬜ Not started | Polar credits |
 | J — Polish | ⬜ Not started | Command menu, dialogs, UX |
 
-There's a real (if unthemed and unwired) input screen now — `Header`, an `InputBar` with a working `/`-command menu, and a status row — but no submit handler, routing, or chat interface yet. Run it with `bun run dev:cli`.
+There's a real, themed input screen now — `Header`, an `InputBar` with a working `/`-command menu, and a status row that reflects live mode/model state — plus a full provider stack (theme persistence, layered ctrl+c handling, toasts, modal dialogs, prompt config) wired through `RootLayout`. Typing `/theme` opens a live, keyboard-navigable theme picker with instant preview that persists to `~/.twocode/preferences.json`. No submit handler, routing, or chat interface yet. Run it with `bun run dev:cli`.
 
 ## Architecture
 
@@ -47,7 +47,7 @@ packages/
 ├── shared/     # Model registry, Mode, Zod tool schemas, AI SDK tool contracts
 ├── database/   # Prisma schema (single Session model) + client singleton
 ├── server/     # Hono API
-└── cli/        # OpenTUI + React terminal client (render boot only so far)
+└── cli/        # OpenTUI + React terminal client (static screen + provider stack, no routing yet)
 ```
 
 Every package is `@twocode/*`, resolved by Bun straight from `src/` via workspace `exports` — no build step for internal consumption.
