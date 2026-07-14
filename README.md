@@ -23,7 +23,7 @@
 
 ## Status
 
-**16 of 44 planned milestones complete** — Phases A–D done, Phase E in progress.
+**22 of 44 planned milestones complete** — Phases A–D done, Phase E in progress.
 
 | Phase | Status | What it covers |
 |---|---|---|
@@ -31,14 +31,14 @@
 | B — Shared contracts | ✅ Done | Model registry, `Mode`, tool schemas, AI SDK tool contracts |
 | C — Database | ✅ Done | Prisma `Session` schema, migration, client singleton |
 | D — Server skeleton | ✅ Done | Hono app, error handling, auth/billing stubs, full sessions CRUD, `AppType` export |
-| E — CLI skeleton | 🚧 In progress | OpenTUI render boot live; Header, InputBar, routing, providers next |
+| E — CLI skeleton | 🚧 In progress | Static screen (Header, InputBar, StatusBar, command menu) live; theme data ready; providers, routing, real submit next |
 | F — Chat streaming | ⬜ Not started | Real AI SDK streaming (first working demo) |
 | G — Tool calling | ⬜ Not started | Local tool execution, PLAN/BUILD modes |
 | H — Real auth | ⬜ Not started | Clerk OAuth |
 | I — Real billing | ⬜ Not started | Polar credits |
 | J — Polish | ⬜ Not started | Command menu, dialogs, UX |
 
-There's a bare OpenTUI terminal shell now (`bun run dev:cli`), but no real screen, routing, or chat interface yet — just a colored box. First interactive screen and first real AI chat are both still a few milestones out.
+There's a real (if unthemed and unwired) input screen now — `Header`, an `InputBar` with a working `/`-command menu, and a status row — but no submit handler, routing, or chat interface yet. Run it with `bun run dev:cli`.
 
 ## Architecture
 
