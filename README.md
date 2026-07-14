@@ -2,8 +2,6 @@
 
 <h1>TwoCode</h1>
 
-<p>A from-scratch rebuild of <a href="https://github.com/code-with-antonio/nightcode">NightCode</a> (a terminal AI coding agent), built one small, explained milestone at a time to learn the architecture rather than copy it.</p>
-
 <p>
   <img src="https://img.shields.io/badge/Bun-000000?style=for-the-badge&logo=bun&logoColor=white" alt="Bun" />&nbsp;
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />&nbsp;
@@ -19,7 +17,19 @@
 
 ## What this is
 
-`nightcode/` (a sibling directory) is a fully-built reference implementation. `TwoCode/` is the same architecture, rebuilt from understanding — no copied code — one milestone at a time, each explained, verified, and committed on its own. Progress and reasoning for every milestone lives in [`Notes.md`](./Notes.md).
+TWOCODE integrates directly into your development environment to read, write, and execute code autonomously.
+
+It is designed to handle complex software engineering tasks by treating your entire codebase as a cohesive system rather than just looking at isolated files.
+
+## Screenshots
+
+<p align="center">
+  <img src="packages/public/assets/1_ui.png" alt="TwoCode home screen showing the input bar and active Build mode / OpenRouter provider / model" width="600" />
+</p>
+
+<p align="center">
+  <img src="packages/public/assets/2_output.png" alt="A real session in progress: reasoning traces and live tool calls (List Directory, Read File) from a free OpenRouter model" width="600" />
+</p>
 
 ## Status
 
@@ -40,7 +50,7 @@
 
 This is a real, themed, fully-routable terminal app: `Home` → `NewSession` → `Session`, each backed by a real Postgres-persisted session. Typing a message creates a real session and lands on a real chat screen wired to a real `/chat` endpoint and a real `useChat` hook with working client-side tool execution and full message rendering (reasoning, tool calls, text, a mode/model/duration footer).
 
-**Multi-provider AI support:** `/provider` opens a picker for Anthropic (Claude), Google (Gemini), OpenAI, and OpenRouter — a modular `PROVIDERS` registry in `@twocode/shared` means adding a fifth provider is a small, contained diff, not a rewrite. Picking an unconfigured provider prompts for an API key, validates it against that provider's real API before saving, and stores it locally at `~/.twocode/credentials.json` (owner-only permissions, never sent anywhere except as part of your own `/chat` requests, never persisted server-side). Google and OpenRouter are flagged as free-tier providers — both offer genuinely free API keys with no card required, and OpenRouter additionally accepts any custom model slug beyond its curated free list. The active provider is always visible in the status row. `/models` goes a level deeper than the provider badge: it flags individual models too, since a free-tier provider can still have paid-only models (Google's `gemini-3.1-pro` requires billing even though `gemini-3.1-flash`/`gemini-3.1-flash-lite` don't).
+**Multi-provider AI support:** `/provider` opens a picker for Anthropic (Claude), Google (Gemini), OpenAI, and OpenRouter — a modular `PROVIDERS` registry in `@twocode/shared` means adding a fifth provider is a small, contained diff, not a rewrite. Picking an unconfigured provider prompts for an API key, validates it against that provider's real API before saving, and stores it locally at `~/.twocode/credentials.json` (owner-only permissions, never sent anywhere except as part of your own `/chat` requests, never persisted server-side). Google and OpenRouter are flagged as free-tier providers — both offer genuinely free API keys with no card required, and OpenRouter additionally accepts any custom model slug beyond its curated free list. The active provider is always visible in the status row. `/models` goes a level deeper than the provider badge: it flags individual models too, since a free-tier provider can still have paid-only models (Google's `gemini-3.1-pro-preview` requires billing even though `gemini-3.5-flash`/`gemini-3.1-flash-lite` don't).
 
 The command menu is fully live: `/theme`, `/provider`, `/agents`, `/models`, `/sessions`, `/new`, `/exit` all do something real; `/login`, `/logout`, `/upgrade`, `/usage` show a clear toast explaining they need Phase H/I credentials, rather than silently doing nothing. The one thing not provable end-to-end is an actual model reply, since no real API key is configured for any provider — everything up to that boundary (credentials storage, key validation, session merge, tool resolution, the real request reaching each provider's API, even a down-server network failure) is real and tested; add a real key via `/provider` to see it go all the way. Run it with `bun run dev:cli` (needs `bun run packages/server/src/index.ts` running alongside it).
 
