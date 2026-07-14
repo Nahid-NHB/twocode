@@ -6,13 +6,13 @@ import { usePromptConfig } from "../providers/prompt-config";
 
 export function Home() {
   const navigate = useNavigate();
-  const { mode, model } = usePromptConfig();
+  const { mode, provider, model } = usePromptConfig();
 
   const handleSubmit = useCallback(
     (text: string) => {
-      navigate("/sessions/new", { state: { message: text, mode, model } });
+      navigate("/sessions/new", { state: { message: text, mode, provider, model } });
     },
-    [navigate, mode, model],
+    [navigate, mode, provider, model],
   );
 
   return (

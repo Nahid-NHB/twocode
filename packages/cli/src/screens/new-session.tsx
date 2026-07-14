@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { z } from "zod";
-import { modeSchema } from "@twocode/shared";
+import { modeSchema, PROVIDERS, type SupportedProvider } from "@twocode/shared";
 import { useNavigate, useLocation } from "react-router";
 import { SessionShell } from "../components/session-shell";
 import { UserMessage } from "../components/messages";
@@ -8,9 +8,12 @@ import { useToast } from "../providers/toast";
 import { apiClient } from "../lib/api-client";
 import { getErrorMessage } from "../lib/http-errors";
 
+const providerIds = PROVIDERS.map((p) => p.id) as [SupportedProvider, ...SupportedProvider[]];
+
 const newSessionStateSchema = z.object({
   message: z.string(),
   mode: modeSchema,
+  provider: z.enum(providerIds),
   model: z.string(),
 });
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router";
 import { z } from "zod";
-import { type ModeType, type SupportedChatModelId } from "@twocode/shared";
+import { type ModeType, type SupportedChatModelId, type SupportedProvider } from "@twocode/shared";
 import type { InferResponseType } from "hono/client";
 import { SessionShell } from "../components/session-shell";
 import { UserMessage, BotMessage, ErrorMessage } from "../components/messages";
@@ -20,6 +20,7 @@ const sessionLocationSchema = z.object({
     .object({
       message: z.string(),
       mode: z.custom<ModeType>(),
+      provider: z.custom<SupportedProvider>(),
       model: z.custom<SupportedChatModelId>(),
     })
     .optional(),
@@ -50,10 +51,10 @@ function SessionChat({
   initialPrompt,
 }: {
   session: SessionData;
-  initialPrompt?: { message: string; mode: ModeType; model: SupportedChatModelId };
+  initialPrompt?: { message: string; mode: ModeType; provider: SupportedProvider; model: SupportedChatModelId };
 }) {
   const [initialMessages] = useState(() => session.messages as unknown as Message[]);
-  const { mode, model } = usePromptConfig();
+  const { mode, provider, model } = usePromptConfig();
   const { messages, status, submit, abort, error } = useChat(session.id, initialMessages);
   const hasSubmittedInitialPromptRef = useRef(false);
 
@@ -66,12 +67,17 @@ function SessionChat({
   useEffect(() => {
     if (!initialPrompt || hasSubmittedInitialPromptRef.current) return;
     hasSubmittedInitialPromptRef.current = true;
-    void submit({ userText: initialPrompt.message, mode: initialPrompt.mode, model: initialPrompt.model });
+    void submit({
+      userText: initialPrompt.message,
+      mode: initialPrompt.mode,
+      provider: initialPrompt.provider,
+      model: initialPrompt.model,
+    });
   }, [initialPrompt, submit]);
 
   return (
     <SessionShell
-      onSubmit={(text) => submit({ userText: text, mode, model })}
+      onSubmit={(text) => submit({ userText: text, mode, provider, model })}
       loading={status === "submitted" || status === "streaming"}
       interruptible={status === "submitted" || status === "streaming"}
     >
