@@ -4,7 +4,7 @@ import { z } from "zod";
 import { type ModeType, type SupportedChatModelId } from "@twocode/shared";
 import type { InferResponseType } from "hono/client";
 import { SessionShell } from "../components/session-shell";
-import { UserMessage, ErrorMessage } from "../components/messages";
+import { UserMessage, BotMessage, ErrorMessage } from "../components/messages";
 import { useToast } from "../providers/toast";
 import { usePromptConfig } from "../providers/prompt-config";
 import { apiClient } from "../lib/api-client";
@@ -25,20 +25,24 @@ const sessionLocationSchema = z.object({
     .optional(),
 });
 
-// Bot replies aren't rendered yet -- without a real model API key there's
-// no real streamed response to build that rendering against, and guessing
-// at a shape (tool-call UI, streaming cursor) risks getting it wrong. User
-// messages and the real error path (surfaced via ErrorMessage) are enough
-// to prove the chat pipeline itself works end to end.
 function ChatMessage({ msg }: { msg: Message }) {
-  if (msg.role !== "user") return null;
+  if (msg.role === "user") {
+    const text = msg.parts
+      .filter((p) => p.type === "text")
+      .map((p) => p.text)
+      .join("");
 
-  const text = msg.parts
-    .filter((p) => p.type === "text")
-    .map((p) => p.text)
-    .join("");
+    return <UserMessage message={text} mode={msg.metadata?.mode ?? "BUILD"} />;
+  }
 
-  return <UserMessage message={text} mode={msg.metadata?.mode ?? "BUILD"} />;
+  return (
+    <BotMessage
+      parts={msg.parts}
+      model={msg.metadata?.model ?? "unknown"}
+      mode={msg.metadata?.mode ?? "BUILD"}
+      durationMs={msg.metadata?.durationMs}
+    />
+  );
 }
 
 function SessionChat({
