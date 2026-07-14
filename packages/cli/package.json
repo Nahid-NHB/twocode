@@ -16,9 +16,11 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@ai-sdk/react": "^4.0.27",
     "@opentui/core": "^0.4.3",
     "@opentui/react": "^0.4.3",
     "@twocode/shared": "workspace:*",
+    "ai": "^7.0.26",
     "hono": "^4.12.29",
     "opentui-spinner": "^0.0.7",
     "react": "^19.2.4",

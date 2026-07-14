@@ -1,13 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router";
 import { z } from "zod";
 import { type ModeType, type SupportedChatModelId } from "@twocode/shared";
 import type { InferResponseType } from "hono/client";
 import { SessionShell } from "../components/session-shell";
-import { UserMessage } from "../components/messages";
+import { UserMessage, ErrorMessage } from "../components/messages";
 import { useToast } from "../providers/toast";
+import { usePromptConfig } from "../providers/prompt-config";
 import { apiClient } from "../lib/api-client";
 import { getErrorMessage } from "../lib/http-errors";
+import { useChat } from "../hooks/use-chat";
+import type { Message } from "../hooks/use-chat";
 
 type SessionData = InferResponseType<(typeof apiClient.sessions)[":id"]["$get"], 200>;
 
@@ -22,10 +25,59 @@ const sessionLocationSchema = z.object({
     .optional(),
 });
 
-// Real chat submission (Milestone 38's useChat hook) doesn't exist yet --
-// this screen can display a session and the prompt that created it, but
-// can't send or receive messages until that hook is wired up.
-function noopSubmit() {}
+// Bot replies aren't rendered yet -- without a real model API key there's
+// no real streamed response to build that rendering against, and guessing
+// at a shape (tool-call UI, streaming cursor) risks getting it wrong. User
+// messages and the real error path (surfaced via ErrorMessage) are enough
+// to prove the chat pipeline itself works end to end.
+function ChatMessage({ msg }: { msg: Message }) {
+  if (msg.role !== "user") return null;
+
+  const text = msg.parts
+    .filter((p) => p.type === "text")
+    .map((p) => p.text)
+    .join("");
+
+  return <UserMessage message={text} mode={msg.metadata?.mode ?? "BUILD"} />;
+}
+
+function SessionChat({
+  session,
+  initialPrompt,
+}: {
+  session: SessionData;
+  initialPrompt?: { message: string; mode: ModeType; model: SupportedChatModelId };
+}) {
+  const [initialMessages] = useState(() => session.messages as unknown as Message[]);
+  const { mode, model } = usePromptConfig();
+  const { messages, status, submit, abort, error } = useChat(session.id, initialMessages);
+  const hasSubmittedInitialPromptRef = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      void abort();
+    };
+  }, [abort]);
+
+  useEffect(() => {
+    if (!initialPrompt || hasSubmittedInitialPromptRef.current) return;
+    hasSubmittedInitialPromptRef.current = true;
+    void submit({ userText: initialPrompt.message, mode: initialPrompt.mode, model: initialPrompt.model });
+  }, [initialPrompt, submit]);
+
+  return (
+    <SessionShell
+      onSubmit={(text) => submit({ userText: text, mode, model })}
+      loading={status === "submitted" || status === "streaming"}
+      interruptible={status === "submitted" || status === "streaming"}
+    >
+      {messages.map((msg) => (
+        <ChatMessage key={msg.id} msg={msg} />
+      ))}
+      {error && <ErrorMessage message={error.message} />}
+    </SessionShell>
+  );
+}
 
 export function Session() {
   const { id } = useParams();
@@ -73,14 +125,8 @@ export function Session() {
   }, [id, prefetched, toast, navigate]);
 
   if (!session) {
-    return <SessionShell onSubmit={noopSubmit} inputDisabled loading />;
+    return <SessionShell onSubmit={() => {}} inputDisabled loading />;
   }
 
-  return (
-    <SessionShell onSubmit={noopSubmit} inputDisabled>
-      {prefetched?.initialPrompt ? (
-        <UserMessage message={prefetched.initialPrompt.message} mode={prefetched.initialPrompt.mode} />
-      ) : null}
-    </SessionShell>
-  );
+  return <SessionChat key={session.id} session={session} initialPrompt={prefetched?.initialPrompt} />;
 }
