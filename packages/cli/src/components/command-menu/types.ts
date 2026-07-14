@@ -1,5 +1,5 @@
 import type { NavigateFunction } from "react-router";
-import type { ModeType, SupportedChatModelId } from "@twocode/shared";
+import type { ModeType, SupportedChatModelId, SupportedProvider } from "@twocode/shared";
 import type { DialogContextValue } from "../../providers/dialog";
 import type { ToastContextValue } from "../../providers/toast";
 
@@ -10,6 +10,8 @@ export type CommandContext = {
   navigate: NavigateFunction;
   mode: ModeType;
   setMode: (mode: ModeType) => void;
+  provider: SupportedProvider;
+  setProvider: (provider: SupportedProvider) => void;
   model: SupportedChatModelId;
   setModel: (model: SupportedChatModelId) => void;
 };

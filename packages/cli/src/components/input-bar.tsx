@@ -33,7 +33,7 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
   const dialog = useDialog();
   const toast = useToast();
   const navigate = useNavigate();
-  const { mode, toggleMode, setMode, model, setModel } = usePromptConfig();
+  const { mode, toggleMode, setMode, provider, setProvider, model, setModel } = usePromptConfig();
   const { colors } = useTheme();
 
   const {
@@ -82,13 +82,15 @@ export function InputBar({ onSubmit, disabled = false }: Props) {
         navigate,
         mode,
         setMode,
+        provider,
+        setProvider,
         model,
         setModel,
       });
     } else {
       textarea.insertText(command.value + " ");
     }
-  }, [renderer, dialog, toast, navigate, mode, setMode, model, setModel]);
+  }, [renderer, dialog, toast, navigate, mode, setMode, provider, setProvider, model, setModel]);
 
   const handleCommandExecute = useCallback(
     (index: number) => {

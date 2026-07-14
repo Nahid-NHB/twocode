@@ -1,6 +1,7 @@
-import { SUPPORTED_CHAT_MODELS } from "@twocode/shared";
+import { modelsForProvider } from "@twocode/shared";
 import { AgentsDialogContent } from "../dialogs/agents-dialog";
 import { ModelsDialogContent } from "../dialogs/models-dialog";
+import { ProviderDialogContent } from "../dialogs/provider-dialog";
 import { SessionsDialogContent } from "../dialogs/sessions-dialog";
 import { ThemeDialogContent } from "../dialogs/theme-dialog";
 import type { Command } from "./types";
@@ -12,6 +13,17 @@ export const COMMANDS: Command[] = [
     value: "/new",
     action: (ctx) => {
       ctx.navigate("/");
+    },
+  },
+  {
+    name: "provider",
+    description: "Switch AI provider (Anthropic, Gemini, OpenAI, OpenRouter...)",
+    value: "/provider",
+    action: (ctx) => {
+      ctx.dialog.open({
+        title: "Select Provider",
+        children: <ProviderDialogContent currentProvider={ctx.provider} onSelectProvider={ctx.setProvider} />,
+      });
     },
   },
   {
@@ -35,7 +47,7 @@ export const COMMANDS: Command[] = [
         children: (
           <ModelsDialogContent
             currentModel={ctx.model}
-            models={SUPPORTED_CHAT_MODELS.map((model) => model.id)}
+            models={modelsForProvider(ctx.provider).map((model) => model.id)}
             onSelectModel={ctx.setModel}
           />
         ),

@@ -152,6 +152,12 @@ export function modelsForProvider(provider: SupportedProvider): SupportedChatMod
   return SUPPORTED_CHAT_MODELS.filter((model) => model.provider === provider);
 }
 
+// First curated model for a provider -- used as the model a UI switches to
+// when the user picks that provider, so there's always a valid selection.
+export function defaultModelForProvider(provider: SupportedProvider): string {
+  return modelsForProvider(provider)[0]?.id ?? "";
+}
+
 // A model id is valid for a request if it's in the curated list for that
 // provider, or the provider explicitly allows arbitrary model ids
 // (currently just OpenRouter).
