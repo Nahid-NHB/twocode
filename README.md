@@ -23,7 +23,7 @@
 
 ## Status
 
-**44 of 44 planned milestones complete.** Every phase that's reachable without external service credentials this environment doesn't have is done. Phases H (Clerk OAuth) and I (Polar billing) are genuinely blocked on real accounts — their stubs are the intended state until someone picks this up with real credentials in hand.
+**44 of 44 planned milestones complete, plus post-plan polish (Milestone 45).** Every phase that's reachable without external service credentials this environment doesn't have is done. Phases H (Clerk OAuth) and I (Polar billing) are genuinely blocked on real accounts — their stubs are the intended state until someone picks this up with real credentials in hand.
 
 | Phase | Status | What it covers |
 |---|---|---|
@@ -38,7 +38,7 @@
 | I — Real billing | ⛔ Blocked | Needs a real Polar account — `requireCreditsBalance` stays a no-op until then |
 | J — Polish | ✅ Done | Full command menu (theme/agents/models/sessions/new/exit all real), tab-key mode toggle, focus-restoration fix |
 
-This is a real, themed, fully-routable terminal app: `Home` → `NewSession` → `Session`, each backed by a real Postgres-persisted session. Typing a message creates a real session and lands on a real chat screen wired to a real `/chat` endpoint and a real `useChat` hook with working client-side tool execution and full message rendering (reasoning, tool calls, text, a mode/model/duration footer). The command menu is fully live: `/theme`, `/agents`, `/models`, `/sessions`, `/new`, `/exit` all do something real; `/login`, `/logout`, `/upgrade`, `/usage` remain documented stubs pending Phase H/I credentials. The one thing not provable end-to-end is an actual model reply, since no `ANTHROPIC_API_KEY` is configured — everything up to that boundary (auth, credits, session merge, tool resolution, the real request reaching Anthropic's API) is real and tested; drop a key in `.env` to see it go all the way. Run it with `bun run dev:cli` (needs `bun run packages/server/src/index.ts` running alongside it).
+This is a real, themed, fully-routable terminal app: `Home` → `NewSession` → `Session`, each backed by a real Postgres-persisted session. Typing a message creates a real session and lands on a real chat screen wired to a real `/chat` endpoint and a real `useChat` hook with working client-side tool execution and full message rendering (reasoning, tool calls, text, a mode/model/duration footer). The command menu is fully live: `/theme`, `/agents`, `/models`, `/sessions`, `/new`, `/exit` all do something real; `/login`, `/logout`, `/upgrade`, `/usage` show a clear toast explaining they need Phase H/I credentials, rather than silently doing nothing. The one thing not provable end-to-end is an actual model reply, since no `ANTHROPIC_API_KEY` is configured — everything up to that boundary (auth, credits, session merge, tool resolution, the real request reaching Anthropic's API, even a down-server network failure) is real and tested; drop a key in `.env` to see it go all the way. Run it with `bun run dev:cli` (needs `bun run packages/server/src/index.ts` running alongside it).
 
 ## Architecture
 
