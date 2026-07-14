@@ -11,15 +11,24 @@ import {
 } from "ai";
 import { db } from "@twocode/database/client";
 import type { Prisma } from "@twocode/database";
-import { getToolContracts, modeSchema, type ModeType, type ToolContracts } from "@twocode/shared";
+import {
+  getToolContracts,
+  isValidModelForProvider,
+  modeSchema,
+  PROVIDERS,
+  type ModeType,
+  type SupportedProvider,
+  type ToolContracts,
+} from "@twocode/shared";
 import { buildSystemPrompt } from "../system-prompt";
 import type { AuthenticatedEnv } from "../middleware/require-auth";
 import { requireAuth } from "../middleware/require-auth";
 import { requireCreditsBalance } from "../middleware/require-credits-balance";
-import { isSupportedChatModel, resolveChatModel } from "../lib/models";
+import { resolveChatModel } from "../lib/models";
 
 type ChatMessageMetadata = {
   mode?: ModeType;
+  provider?: SupportedProvider;
   model?: string;
   durationMs?: number;
   usage?: LanguageModelUsage;
@@ -27,18 +36,30 @@ type ChatMessageMetadata = {
 
 type TwoCodeUIMessage = UIMessage<ChatMessageMetadata, never, InferUITools<ToolContracts>>;
 
-const submitSchema = z.object({
-  id: z.string(),
-  messages: z
-    .array(
-      z.custom<TwoCodeUIMessage>((value) => {
-        return value != null && typeof value === "object" && "id" in value && "parts" in value;
-      }),
-    )
-    .min(1),
-  mode: modeSchema,
-  model: z.string().refine(isSupportedChatModel, "Unsupported model"),
-});
+const providerIds = PROVIDERS.map((p) => p.id) as [SupportedProvider, ...SupportedProvider[]];
+
+// apiKey is intentionally never persisted anywhere -- it's read here, used
+// once to build a single AI SDK model instance for this request, and
+// discarded. Nothing downstream (session.messages, logs) should ever see it.
+const submitSchema = z
+  .object({
+    id: z.string(),
+    messages: z
+      .array(
+        z.custom<TwoCodeUIMessage>((value) => {
+          return value != null && typeof value === "object" && "id" in value && "parts" in value;
+        }),
+      )
+      .min(1),
+    mode: modeSchema,
+    provider: z.enum(providerIds),
+    model: z.string().min(1),
+    apiKey: z.string().min(1),
+  })
+  .refine((data) => isValidModelForProvider(data.provider, data.model), {
+    message: "Unsupported model for provider",
+    path: ["model"],
+  });
 
 function hasPendingToolCalls(message: TwoCodeUIMessage) {
   return message.parts.some((part) => {
@@ -62,7 +83,7 @@ export const chatRoute = new Hono<AuthenticatedEnv>().post(
   }),
   async (c) => {
     const userId = c.get("userId");
-    const { id, messages, mode, model } = c.req.valid("json");
+    const { id, messages, mode, provider, model, apiKey } = c.req.valid("json");
 
     const session = await db.session.findFirst({
       where: { id, userId },
@@ -74,7 +95,7 @@ export const chatRoute = new Hono<AuthenticatedEnv>().post(
 
     const startTime = Date.now();
     const tools = getToolContracts(mode);
-    const resolvedModel = resolveChatModel(model);
+    const resolvedModel = resolveChatModel(provider, model, apiKey);
     const previousMessages = Array.isArray(session.messages)
       ? (session.messages as unknown as TwoCodeUIMessage[])
       : [];
@@ -83,7 +104,7 @@ export const chatRoute = new Hono<AuthenticatedEnv>().post(
     for (const message of messages) {
       const incomingMessage = {
         ...message,
-        metadata: { ...message.metadata, mode, model },
+        metadata: { ...message.metadata, mode, provider, model },
       } satisfies TwoCodeUIMessage;
 
       const existingMessageIndex = mergedMessages.findIndex((m) => m.id === incomingMessage.id);
@@ -116,13 +137,14 @@ export const chatRoute = new Hono<AuthenticatedEnv>().post(
       originalMessages: nextMessages,
       messageMetadata({ part }) {
         if (part.type === "start") {
-          return { mode, model };
+          return { mode, provider, model };
         }
 
         if (part.type !== "finish") return undefined;
 
         return {
           mode,
+          provider,
           model,
           durationMs: Date.now() - startTime,
           ...(completedUsage ? { usage: completedUsage } : {}),

@@ -8,7 +8,10 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.14",
+    "@ai-sdk/google": "^4.0.14",
+    "@ai-sdk/openai": "^4.0.13",
     "@hono/zod-validator": "^0.8.0",
+    "@openrouter/ai-sdk-provider": "^3.0.0",
     "@twocode/database": "workspace:*",
     "@twocode/shared": "workspace:*",
     "ai": "^7.0.26",

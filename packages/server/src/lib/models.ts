@@ -1,21 +1,46 @@
-import { anthropic } from "@ai-sdk/anthropic";
-import { findSupportedChatModel, type SupportedChatModelId } from "@twocode/shared";
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogle } from "@ai-sdk/google";
+import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenRouter } from "@openrouter/ai-sdk-provider";
+import { isValidModelForProvider, type SupportedProvider } from "@twocode/shared";
 import type { LanguageModel } from "ai";
 
 export type ResolvedModel = {
   model: LanguageModel;
-  modelId: SupportedChatModelId;
+  provider: SupportedProvider;
+  modelId: string;
 };
 
-export function isSupportedChatModel(modelId: string): modelId is SupportedChatModelId {
-  return findSupportedChatModel(modelId) != null;
+function assertUnsupportedProvider(provider: never): never {
+  throw new Error(`Unsupported provider: ${provider}`);
 }
 
-export function resolveChatModel(modelId: string): ResolvedModel {
-  const model = findSupportedChatModel(modelId);
-  if (!model) {
-    throw new Error(`Unsupported model: ${modelId}`);
+// One branch per provider in @twocode/shared's PROVIDERS list. Adding a
+// new provider means: one new PROVIDERS entry (shared), one new AI SDK
+// package (here), and one new case below -- nothing else changes.
+function createModel(provider: SupportedProvider, modelId: string, apiKey: string): LanguageModel {
+  switch (provider) {
+    case "anthropic":
+      return createAnthropic({ apiKey })(modelId);
+    case "google":
+      return createGoogle({ apiKey })(modelId);
+    case "openai":
+      return createOpenAI({ apiKey })(modelId);
+    case "openrouter":
+      return createOpenRouter({ apiKey })(modelId);
+    default:
+      return assertUnsupportedProvider(provider);
+  }
+}
+
+export function resolveChatModel(provider: string, modelId: string, apiKey: string): ResolvedModel {
+  if (!isValidModelForProvider(provider, modelId)) {
+    throw new Error(`Unsupported model "${modelId}" for provider "${provider}"`);
   }
 
-  return { model: anthropic(model.id), modelId: model.id as SupportedChatModelId };
+  return {
+    model: createModel(provider as SupportedProvider, modelId, apiKey),
+    provider: provider as SupportedProvider,
+    modelId,
+  };
 }
