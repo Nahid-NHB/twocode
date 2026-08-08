@@ -41,7 +41,7 @@ packages/
 ├── sandbox/
 │   ├── src/
 │   │   ├── index.ts        # runInSandbox(command, cwd): Promise<SandboxResult>
-│   │   └── image.ts        # ensureImage(): builds sandbox image once per session
+│   │   └── image.ts        # ensureImage(): builds image once, race-safe; reapOrphans(): cleans leftover containers
 │   ├── Dockerfile          # Alpine + common dev tools
 │   └── package.json
 ├── cli/
@@ -57,10 +57,14 @@ packages/
 ```dockerfile
 FROM alpine:3.21
 RUN apk add --no-cache bash git nodejs npm python3 make g++ curl
+RUN adduser -D -u 1000 sandbox
 WORKDIR /workspace
+USER sandbox
 ```
 
 Image tag: `twocode-sandbox`. Built once per machine, not per session.
+
+**Non-root execution.** The image bakes in an unprivileged `sandbox` user (defense in depth — combined with `--cap-drop=ALL` and `--read-only`, a process breakout doesn't land as root). At `docker run` time, `--user <host-uid>:<host-gid>` overrides the baked-in UID with the real host user's, so files written into the bind-mounted project directory come out host-owned instead of owned by container-root or by a mismatched UID 1000. `id -u`/`id -g` are read once at sandbox startup, not per call.
 
 ---
 
@@ -79,6 +83,7 @@ docker run \
   --cpus=1 \
   -v <cwd>:<cwd>:rw \
   --workdir <cwd> \
+  --user <host-uid>:<host-gid> \
   twocode-sandbox \
   bash -c <command>
 ```
@@ -92,6 +97,7 @@ docker run \
 | `--tmpfs /tmp` | Provides writable scratch space |
 | `-m 512m --cpus=1` | Fork bombs, OOM host |
 | `--rm` | Container cleanup on exit |
+| `--user <host-uid>:<host-gid>` | Root-owned files on host; container-root privilege |
 
 Project directory mounted at the same absolute path so relative paths in commands resolve correctly.
 
@@ -109,6 +115,10 @@ Project directory mounted at the same absolute path so relative paths in command
 4. Subsequent calls are a no-op (image already present)
 
 If bash is called before the build completes, it awaits `ensureImage()`.
+
+**Concurrent-call race.** `ensureImage()` caches its in-flight build as a module-level `Promise<void>`. The first caller starts the build and stores the promise; any call that arrives while a build is running awaits that same promise instead of starting a second `docker buildx build`. The cache is cleared only on failure, so a failed build can be retried by the next call.
+
+**Orphan cleanup.** At the same CLI startup point, before the first bash call, `reapOrphans()` runs `docker ps -a --filter name=twocode- -q` and force-removes any hits. This clears containers left behind by a CLI crash mid-command (`--rm` only fires on normal container exit, not on the CLI process dying). No-ops silently when nothing matches.
 
 ---
 
@@ -144,9 +154,12 @@ Three test files in `packages/sandbox/src/__tests__/`. All require Docker runnin
 - Host filesystem unreachable: `ls /root` or `cat ~/.ssh/id_rsa` fails
 - `/tmp` writable: `touch /tmp/x` succeeds
 - Project dir writable: write a file inside container, verify it appears on host
+- File ownership: write a file inside container, verify host-side owner matches the calling host user (not root, not UID 1000)
 
 **`image.test.ts`**
 - `ensureImage()` called twice — builds once, second call is a no-op (checked via call count + timing)
+- `ensureImage()` called concurrently (two overlapping calls before either resolves) — only one build runs, both callers resolve
+- `reapOrphans()` with a pre-existing `twocode-*` container present — container is removed; with none present — no-op, no error
 
 **`integration.test.ts`**
 - Calls `executeLocalTool("bash", { command: "echo hello" }, "BUILD")` end-to-end
