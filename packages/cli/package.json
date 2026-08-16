@@ -19,6 +19,7 @@
     "@ai-sdk/react": "^4.0.27",
     "@opentui/core": "^0.4.3",
     "@opentui/react": "^0.4.3",
+    "@twocode/sandbox": "workspace:*",
     "@twocode/shared": "workspace:*",
     "ai": "^7.0.26",
     "date-fns": "^4.4.0",

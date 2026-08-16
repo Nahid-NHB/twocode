@@ -1,12 +1,11 @@
 import { mkdir, readFile, readdir, stat, writeFile } from "fs/promises";
 import { dirname, isAbsolute, join, relative, resolve } from "path";
 import { toolInputSchemas, Mode, type ModeType } from "@twocode/shared";
+import { runInSandbox } from "@twocode/sandbox";
 
 const MAX_FILE_SIZE = 10_000;
 const MAX_RESULTS = 200;
 const MAX_MATCHES = 50;
-const MAX_OUTPUT = 20_000;
-const DEFAULT_TIMEOUT = 30_000;
 
 function resolveInsideCwd(path: string) {
   const cwd = process.cwd();
@@ -18,12 +17,6 @@ function resolveInsideCwd(path: string) {
   }
 
   return { cwd, resolved };
-}
-
-function truncate(value: string, limit: number) {
-  return value.length > limit
-    ? `${value.slice(0, limit)}\n... (truncated, ${value.length} total chars)`
-    : value;
 }
 
 export async function executeLocalTool(toolName: string, input: unknown, mode: ModeType) {
@@ -138,24 +131,8 @@ export async function executeLocalTool(toolName: string, input: unknown, mode: M
     }
     case "bash": {
       const { command } = toolInputSchemas.bash.parse(input);
-      const proc = Bun.spawn(["bash", "-c", command], {
-        cwd: resolveInsideCwd(".").resolved,
-        stdout: "pipe",
-        stderr: "pipe",
-        env: { ...process.env, TERM: "dumb" },
-      });
-      const timer = setTimeout(() => proc.kill(), DEFAULT_TIMEOUT);
-      const [stdout, stderr] = await Promise.all([
-        new Response(proc.stdout).text(),
-        new Response(proc.stderr).text(),
-      ]);
-      const exitCode = await proc.exited;
-      clearTimeout(timer);
-      return {
-        stdout: truncate(stdout, MAX_OUTPUT),
-        stderr: truncate(stderr, MAX_OUTPUT),
-        exitCode,
-      };
+      const { resolved: cwd } = resolveInsideCwd(".");
+      return runInSandbox(command, cwd);
     }
     default:
       throw new Error(`Unknown tool: ${toolName}`);

@@ -40,6 +40,7 @@ export async function runInSandbox(
     "docker", "run",
     "--rm",
     "--name", name,
+    "--hostname", name,
     "--network=none",
     "--cap-drop=ALL",
     "--read-only",
