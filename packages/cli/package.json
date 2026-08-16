@@ -8,6 +8,7 @@
     "dev": "bun run --watch src/index.tsx"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@types/bun": "latest",
     "@types/react": "^19.2.14",
     "@twocode/server": "workspace:*"
@@ -16,6 +17,8 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@ai-sdk/mcp": "^2.0.12",
+    "@ai-sdk/provider-utils": "^5.0.7",
     "@ai-sdk/react": "^4.0.27",
     "@opentui/core": "^0.4.3",
     "@opentui/react": "^0.4.3",
