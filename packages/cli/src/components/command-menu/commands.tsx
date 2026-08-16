@@ -1,5 +1,6 @@
 import { modelsForProvider } from "@twocode/shared";
 import { AgentsDialogContent } from "../dialogs/agents-dialog";
+import { McpDialogContent } from "../dialogs/mcp-dialog";
 import { ModelsDialogContent } from "../dialogs/models-dialog";
 import { ProviderDialogContent } from "../dialogs/provider-dialog";
 import { SessionsDialogContent } from "../dialogs/sessions-dialog";
@@ -51,6 +52,17 @@ export const COMMANDS: Command[] = [
             onSelectModel={ctx.setModel}
           />
         ),
+      });
+    },
+  },
+  {
+    name: "mcp",
+    description: "View connected MCP servers and their tools",
+    value: "/mcp",
+    action: (ctx) => {
+      ctx.dialog.open({
+        title: "MCP Servers",
+        children: <McpDialogContent />,
       });
     },
   },

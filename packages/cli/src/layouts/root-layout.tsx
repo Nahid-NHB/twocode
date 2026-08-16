@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Outlet } from "react-router";
 import { isDockerAvailable, reapOrphans } from "@twocode/sandbox";
+import { connectMcpServers, loadMcpConfig } from "../lib/mcp-servers";
 import { DialogProvider } from "../providers/dialog";
 import { KeyboardLayerProvider } from "../providers/keyboard-layer";
 import { PromptConfigProvider } from "../providers/prompt-config";
@@ -29,11 +30,41 @@ function DockerStartupCheck() {
   return null;
 }
 
+function McpStartupCheck() {
+  const { show } = useToast();
+  useEffect(() => {
+    let config;
+    try {
+      config = loadMcpConfig();
+    } catch (error) {
+      show({
+        message: `Failed to parse ~/.twocode/mcp.json — MCP servers disabled. ${error instanceof Error ? error.message : String(error)}`,
+        variant: "error",
+        duration: 8000,
+      });
+      return;
+    }
+    if (!config) return;
+
+    connectMcpServers(config).then((result) => {
+      for (const failure of result.failures) {
+        show({
+          message: `MCP server '${failure.server}' failed to start: ${failure.reason}`,
+          variant: "error",
+          duration: 8000,
+        });
+      }
+    });
+  }, []);
+  return null;
+}
+
 export function RootLayout() {
   return (
     <ThemeProvider>
       <ToastProvider>
         <DockerStartupCheck />
+        <McpStartupCheck />
         <KeyboardLayerProvider>
           <DialogProvider>
             <PromptConfigProvider>

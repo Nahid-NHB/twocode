@@ -68,6 +68,13 @@ type ServerEntry = {
 
 const serverEntries = new Map<string, ServerEntry>();
 
+// Failures from the most recent connectMcpServers() call. Notified via
+// toast on startup; also surfaced via /mcp for users who want to see
+// what went wrong without scrolling back through notifications.
+let lastFailures: McpConnectionFailure[] = [];
+
+let lastConfigSummary: Array<{ name: string; configured: true }> = [];
+
 function namespacedName(server: string, tool: string): string {
   return `mcp__${server}__${tool}`;
 }
@@ -105,6 +112,11 @@ export async function connectMcpServers(
 ): Promise<McpConnectionResult> {
   const tools: McpTool[] = [];
   const failures: McpConnectionFailure[] = [];
+  lastFailures = [];
+  lastConfigSummary = Object.keys(config.mcpServers).map((name) => ({
+    name,
+    configured: true as const,
+  }));
 
   for (const [serverName, serverConfig] of Object.entries(config.mcpServers)) {
     try {
@@ -135,6 +147,7 @@ export async function connectMcpServers(
     }
   }
 
+  lastFailures = failures;
   return { tools, failures };
 }
 
@@ -185,14 +198,28 @@ export function getMcpToolsForRequest(): McpTool[] {
   return tools;
 }
 
-export function getMcpServerStatus(): Array<{
-  name: string;
-  status: "connected";
-  toolCount: number;
-}> {
-  const status: Array<{ name: string; status: "connected"; toolCount: number }> = [];
-  for (const [name, entry] of serverEntries) {
-    status.push({ name, status: "connected", toolCount: entry.tools.length });
+export function getMcpServerStatus(): Array<
+  { name: string; status: "connected"; toolCount: number }
+  | { name: string; status: "failed"; reason: string }
+  | { name: string; status: "configured"; toolCount: 0 }
+> {
+  const status: Array<
+    { name: string; status: "connected"; toolCount: number }
+    | { name: string; status: "failed"; reason: string }
+    | { name: string; status: "configured"; toolCount: 0 }
+  > = [];
+
+  for (const { name } of lastConfigSummary) {
+    if (serverEntries.has(name)) {
+      status.push({ name, status: "connected", toolCount: serverEntries.get(name)!.tools.length });
+    } else {
+      const failure = lastFailures.find((f) => f.server === name);
+      if (failure) {
+        status.push({ name, status: "failed", reason: failure.reason });
+      } else {
+        status.push({ name, status: "configured", toolCount: 0 });
+      }
+    }
   }
   return status;
 }
@@ -206,4 +233,6 @@ export async function closeMcpServers(): Promise<void> {
     ),
   );
   serverEntries.clear();
+  lastFailures = [];
+  lastConfigSummary = [];
 }
