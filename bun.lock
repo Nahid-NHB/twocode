@@ -44,6 +44,13 @@
         "prisma": "^7.8.0",
       },
     },
+    "packages/sandbox": {
+      "name": "@twocode/sandbox",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+    },
     "packages/server": {
       "name": "@twocode/server",
       "version": "0.1.0",
@@ -172,6 +179,8 @@
     "@twocode/cli": ["@twocode/cli@workspace:packages/cli"],
 
     "@twocode/database": ["@twocode/database@workspace:packages/database"],
+
+    "@twocode/sandbox": ["@twocode/sandbox@workspace:packages/sandbox"],
 
     "@twocode/server": ["@twocode/server@workspace:packages/server"],
 
