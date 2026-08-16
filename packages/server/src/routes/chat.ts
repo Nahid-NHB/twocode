@@ -3,10 +3,13 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import {
   convertToModelMessages,
+  jsonSchema,
   streamText,
+  tool,
   validateUIMessages,
   type InferUITools,
   type LanguageModelUsage,
+  type Tool,
   type UIMessage,
 } from "ai";
 import { db } from "@twocode/database/client";
@@ -25,6 +28,7 @@ import type { AuthenticatedEnv } from "../middleware/require-auth";
 import { requireAuth } from "../middleware/require-auth";
 import { requireCreditsBalance } from "../middleware/require-credits-balance";
 import { resolveChatModel } from "../lib/models";
+import { mcpToolsToAiTools, type McpToolEntry } from "../lib/mcp-tools";
 
 type ChatMessageMetadata = {
   mode?: ModeType;
@@ -55,6 +59,11 @@ const submitSchema = z
     provider: z.enum(providerIds),
     model: z.string().min(1),
     apiKey: z.string().min(1),
+    // Per-request MCP tool catalog from the CLI. Empty/missing means
+    // no MCP servers are connected -- the tool set is exactly today's
+    // 7 (or 4 in PLAN mode). The server has no static knowledge of any
+    // MCP tool -- it only ever sees what a given request declares.
+    mcpTools: z.array(z.custom<McpToolEntry>()).optional(),
   })
   .refine((data) => isValidModelForProvider(data.provider, data.model), {
     message: "Unsupported model for provider",
@@ -83,7 +92,7 @@ export const chatRoute = new Hono<AuthenticatedEnv>().post(
   }),
   async (c) => {
     const userId = c.get("userId");
-    const { id, messages, mode, provider, model, apiKey } = c.req.valid("json");
+    const { id, messages, mode, provider, model, apiKey, mcpTools } = c.req.valid("json");
 
     const session = await db.session.findFirst({
       where: { id, userId },
@@ -94,7 +103,10 @@ export const chatRoute = new Hono<AuthenticatedEnv>().post(
     }
 
     const startTime = Date.now();
-    const tools = getToolContracts(mode);
+    // The static 7 + any per-request MCP entries. Spread keeps the static
+    // contracts' literal types intact for downstream InferUITools<ToolContracts>
+    // consumers; MCP entries get typed as the AI SDK's generic Tool shape.
+    const tools = { ...getToolContracts(mode), ...mcpToolsToAiTools(mcpTools) };
     const resolvedModel = resolveChatModel(provider, model, apiKey);
     const previousMessages = Array.isArray(session.messages)
       ? (session.messages as unknown as TwoCodeUIMessage[])

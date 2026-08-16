@@ -16,6 +16,7 @@ import {
 import { apiClient } from "../lib/api-client";
 import { getApiKey } from "../lib/credentials";
 import { executeLocalTool } from "../lib/local-tools";
+import { callMcpTool, getMcpToolsForRequest } from "../lib/mcp-servers";
 
 export type ChatMessageMetadata = {
   mode?: ModeType;
@@ -38,7 +39,7 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
   const transport = useMemo(() => {
     return new DefaultChatTransport<Message>({
       api: apiClient.chat.$url().toString(),
-      prepareSendMessagesRequest({ messages }) {
+      async prepareSendMessagesRequest({ messages }) {
         const message = messages[messages.length - 1];
         if (!message) throw new Error("No message to send");
 
@@ -70,6 +71,7 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
             provider,
             model,
             apiKey,
+            mcpTools: getMcpToolsForRequest(),
           },
         };
       },
@@ -82,8 +84,23 @@ export function useChat(sessionId: string, initialMessages: Message[]) {
     transport,
     onToolCall({ toolCall }) {
       const mode = chat.messages.at(-1)?.metadata?.mode ?? "BUILD";
+      const isMcp = toolCall.toolName.startsWith("mcp__");
 
-      void executeLocalTool(toolCall.toolName, toolCall.input, mode)
+      if (isMcp && mode === "PLAN") {
+        void chat.addToolOutput({
+          tool: toolCall.toolName as keyof ChatTools,
+          toolCallId: toolCall.toolCallId,
+          state: "output-error",
+          errorText: "MCP tools are not available in PLAN mode",
+        });
+        return;
+      }
+
+      const exec = isMcp
+        ? callMcpTool(toolCall.toolName, toolCall.input)
+        : executeLocalTool(toolCall.toolName, toolCall.input, mode);
+
+      void exec
         .then((output) =>
           chat.addToolOutput({
             tool: toolCall.toolName as keyof ChatTools,
